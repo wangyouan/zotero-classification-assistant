@@ -43,7 +43,12 @@ interface TransformersModule {
     backends: {
       onnx: {
         wasm: {
-          wasmPaths: string;
+          wasmPaths:
+            | string
+            | {
+                mjs: string;
+                wasm: string;
+              };
           numThreads: number;
           proxy: boolean;
         };
@@ -55,6 +60,7 @@ interface TransformersModule {
     model: string,
     options: {
       dtype: string;
+      device: "wasm";
       progress_callback: (value: Record<string, unknown>) => void;
     },
   ): Promise<FeatureExtractionPipeline>;
@@ -158,7 +164,11 @@ class SemanticModelService {
     transformers.env.useFSCache = false;
     transformers.env.useCustomCache = true;
     transformers.env.customCache = modelCache;
-    transformers.env.backends.onnx.wasm.wasmPaths = `chrome://${addon.data.config.addonRef}/content/vendor/`;
+    const vendorURL = `chrome://${addon.data.config.addonRef}/content/vendor/`;
+    transformers.env.backends.onnx.wasm.wasmPaths = {
+      mjs: `${vendorURL}ort-wasm-simd-threaded.mjs`,
+      wasm: `${vendorURL}ort-wasm-simd-threaded.wasm`,
+    };
     transformers.env.backends.onnx.wasm.numThreads = 1;
     transformers.env.backends.onnx.wasm.proxy = false;
     const pipeline = await transformers.pipeline(
@@ -166,6 +176,7 @@ class SemanticModelService {
       SEMANTIC_MODEL_ID,
       {
         dtype: SEMANTIC_MODEL_DTYPE,
+        device: "wasm",
         progress_callback: (value) => progressValue(value, onProgress),
       },
     );

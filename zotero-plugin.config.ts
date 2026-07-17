@@ -1,7 +1,31 @@
 import { defineConfig } from "zotero-plugin-scaffold";
-import { copyFile, mkdir } from "node:fs/promises";
+import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import pkg from "./package.json";
+
+async function copyZoteroCompatibleWasmModule(
+  source: string,
+  destination: string,
+): Promise<void> {
+  const original = await readFile(source, "utf8");
+  const topLevelAwait =
+    "if (isNode) isPthread = (await import('worker_threads')).workerData === 'em-pthread';";
+  if (!original.includes(topLevelAwait)) {
+    throw new Error(
+      "The ONNX WASM module changed: expected Node pthread top-level await was not found.",
+    );
+  }
+  const compatible = original.replace(
+    topLevelAwait,
+    "if (isNode) isPthread = false;",
+  );
+  if (compatible.includes(topLevelAwait)) {
+    throw new Error(
+      "Failed to remove top-level await from the ONNX WASM module.",
+    );
+  }
+  await writeFile(destination, compatible, "utf8");
+}
 
 export default defineConfig({
   source: ["src", "addon"],
@@ -49,18 +73,21 @@ export default defineConfig({
         const transformersDist = path.resolve(
           "node_modules/@huggingface/transformers/dist",
         );
+        const onnxRuntimeDist = path.resolve(
+          "node_modules/onnxruntime-web/dist",
+        );
         await Promise.all([
           copyFile(
             path.join(transformersDist, "transformers.min.js"),
             path.join(vendorDir, "transformers.min.mjs"),
           ),
-          copyFile(
-            path.join(transformersDist, "ort-wasm-simd-threaded.jsep.mjs"),
-            path.join(vendorDir, "ort-wasm-simd-threaded.jsep.mjs"),
+          copyZoteroCompatibleWasmModule(
+            path.join(onnxRuntimeDist, "ort-wasm-simd-threaded.mjs"),
+            path.join(vendorDir, "ort-wasm-simd-threaded.mjs"),
           ),
           copyFile(
-            path.join(transformersDist, "ort-wasm-simd-threaded.jsep.wasm"),
-            path.join(vendorDir, "ort-wasm-simd-threaded.jsep.wasm"),
+            path.join(onnxRuntimeDist, "ort-wasm-simd-threaded.wasm"),
+            path.join(vendorDir, "ort-wasm-simd-threaded.wasm"),
           ),
           copyFile(
             path.resolve("node_modules/@huggingface/transformers/LICENSE"),

@@ -12,7 +12,7 @@ Never test mutation behavior against a production Zotero library.
 
 ## Compatibility target
 
-Version 0.2.0 targets the confirmed test-machine installation, Zotero 9.0.6
+Version 0.2.1 targets the confirmed test-machine installation, Zotero 9.0.6
 (64-bit, stable) on Windows. Its manifest declares:
 
 ```json
@@ -39,7 +39,7 @@ npm run build
 ```
 
 The packaged XPI is placed at
-`.scaffold/build/zotero-classification-assistant-0.2.0.xpi`. The build invokes
+`.scaffold/build/zotero-classification-assistant-0.2.1.xpi`. The build invokes
 `scripts/verify-xpi.mjs`, which checks ZIP integrity, root-level `manifest.json`
 and `bootstrap.js`, manifest values, unresolved placeholders, and prohibited
 source, test, secret, PDF, database, and local-path content. It prints the
@@ -81,7 +81,7 @@ After `npm run build`:
 2. Select a disposable profile whose data directory contains no production
    library and do not sign in to Zotero Sync.
 3. Open **Tools → Plugins**, choose **Install Add-on From File**, and select
-   `.scaffold/build/zotero-classification-assistant-0.2.0.xpi`.
+   `.scaffold/build/zotero-classification-assistant-0.2.1.xpi`.
 4. Restart Zotero, open a top-level bibliographic item, and expand
    **Classification Assistant** in the right pane.
 5. Confirm the preferences pane opens, then test disable/enable and uninstall.

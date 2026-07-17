@@ -63,8 +63,8 @@ const manifestEntry = zip.getEntry("manifest.json");
 const bootstrapEntry = zip.getEntry("bootstrap.js");
 const semanticRuntimeEntries = [
   "content/vendor/transformers.min.mjs",
-  "content/vendor/ort-wasm-simd-threaded.jsep.mjs",
-  "content/vendor/ort-wasm-simd-threaded.jsep.wasm",
+  "content/vendor/ort-wasm-simd-threaded.mjs",
+  "content/vendor/ort-wasm-simd-threaded.wasm",
   "content/vendor/TRANSFORMERS-JS-LICENSE.txt",
 ];
 assert(
@@ -89,6 +89,20 @@ for (const required of semanticRuntimeEntries) {
     `missing semantic runtime asset: ${required}`,
   );
 }
+assert(
+  !names.some((name) => name.includes(".jsep.")),
+  "JSEP/WebGPU runtime must not be packaged for Zotero's CPU-only semantic backend",
+);
+const wasmModule = zip
+  .getEntry("content/vendor/ort-wasm-simd-threaded.mjs")
+  .getData()
+  .toString("utf8");
+assert(
+  !wasmModule.includes(
+    "if (isNode) isPthread = (await import('worker_threads')).workerData === 'em-pthread';",
+  ),
+  "ONNX WASM module still contains Zotero-incompatible top-level await",
+);
 assert(
   !names.some((name) => /(^|\/)model[^/]*\.onnx$/i.test(name)),
   "downloadable semantic model must not be embedded in the XPI",
