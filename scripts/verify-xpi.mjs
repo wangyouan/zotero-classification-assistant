@@ -61,6 +61,12 @@ const entries = zip.getEntries();
 const names = entries.map((entry) => entry.entryName);
 const manifestEntry = zip.getEntry("manifest.json");
 const bootstrapEntry = zip.getEntry("bootstrap.js");
+const semanticRuntimeEntries = [
+  "content/vendor/transformers.min.mjs",
+  "content/vendor/ort-wasm-simd-threaded.jsep.mjs",
+  "content/vendor/ort-wasm-simd-threaded.jsep.wasm",
+  "content/vendor/TRANSFORMERS-JS-LICENSE.txt",
+];
 assert(
   manifestEntry && !manifestEntry.isDirectory,
   "manifest.json is not at XPI root",
@@ -76,6 +82,16 @@ assert(
 assert(
   names.filter((name) => name.toLowerCase() === "bootstrap.js").length === 1,
   "bootstrap.js has incorrect case or duplicate paths",
+);
+for (const required of semanticRuntimeEntries) {
+  assert(
+    names.includes(required),
+    `missing semantic runtime asset: ${required}`,
+  );
+}
+assert(
+  !names.some((name) => /(^|\/)model[^/]*\.onnx$/i.test(name)),
+  "downloadable semantic model must not be embedded in the XPI",
 );
 
 const manifestText = manifestEntry.getData().toString("utf8");
@@ -113,6 +129,7 @@ for (const entry of entries) {
   );
   if (entry.isDirectory || entry.header.size > 2_000_000) continue;
   const text = entry.getData().toString("utf8");
+  const vendoredDependency = entry.entryName.startsWith("content/vendor/");
   assert(
     !/__(addonName|buildVersion|description|homepage|author|addonID|addonRef|addonInstance|env)__/.test(
       text,
@@ -124,7 +141,7 @@ for (const entry of entries) {
     `possible API key in ${entry.entryName}`,
   );
   assert(
-    !/[A-Za-z]:\\Users\\|\/Users\/|\/home\//.test(text),
+    vendoredDependency || !/[A-Za-z]:\\Users\\|\/Users\/|\/home\//.test(text),
     `local path in ${entry.entryName}`,
   );
 }

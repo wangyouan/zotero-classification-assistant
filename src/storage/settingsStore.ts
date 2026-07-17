@@ -10,6 +10,7 @@ export function recommendationSettings() {
     maxTags: Math.max(1, Number(getPref("maxTagRecommendations")) || 6),
     includeAutomaticTags: Boolean(getPref("includeAutomaticTags")),
     includeAbstracts: Boolean(getPref("includeAbstracts")),
+    semanticEnabled: Boolean(getPref("semanticEnabled")),
     excludedCollectionPaths: String(getPref("excludedCollectionPaths") || "")
       .split(/\r?\n/)
       .map((value) => value.trim())

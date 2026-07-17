@@ -29,5 +29,6 @@ export interface ScoredItem {
     publication: number;
     creator: number;
     titlePhrase: number;
+    semantic?: number;
   };
 }

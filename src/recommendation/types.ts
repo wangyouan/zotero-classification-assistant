@@ -33,4 +33,6 @@ export interface ClassificationRecommendation {
   tags: TagRecommendation[];
   similarItems: EvidenceItem[];
   indexedItemCount: number;
+  semanticStatus: "disabled" | "used" | "fallback";
+  semanticWarning?: string;
 }

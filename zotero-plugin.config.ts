@@ -1,4 +1,6 @@
 import { defineConfig } from "zotero-plugin-scaffold";
+import { copyFile, mkdir } from "node:fs/promises";
+import path from "node:path";
 import pkg from "./package.json";
 
 export default defineConfig({
@@ -40,6 +42,33 @@ export default defineConfig({
         outfile: `.scaffold/build/addon/content/scripts/${pkg.config.addonRef}.js`,
       },
     ],
+    hooks: {
+      "build:copyAssets": async (ctx) => {
+        const vendorDir = path.join(ctx.dist, "addon", "content", "vendor");
+        await mkdir(vendorDir, { recursive: true });
+        const transformersDist = path.resolve(
+          "node_modules/@huggingface/transformers/dist",
+        );
+        await Promise.all([
+          copyFile(
+            path.join(transformersDist, "transformers.min.js"),
+            path.join(vendorDir, "transformers.min.mjs"),
+          ),
+          copyFile(
+            path.join(transformersDist, "ort-wasm-simd-threaded.jsep.mjs"),
+            path.join(vendorDir, "ort-wasm-simd-threaded.jsep.mjs"),
+          ),
+          copyFile(
+            path.join(transformersDist, "ort-wasm-simd-threaded.jsep.wasm"),
+            path.join(vendorDir, "ort-wasm-simd-threaded.jsep.wasm"),
+          ),
+          copyFile(
+            path.resolve("node_modules/@huggingface/transformers/LICENSE"),
+            path.join(vendorDir, "TRANSFORMERS-JS-LICENSE.txt"),
+          ),
+        ]);
+      },
+    },
   },
 
   test: {

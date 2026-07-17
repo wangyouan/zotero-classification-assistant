@@ -19,6 +19,7 @@
     "../../src/indexing/bm25.ts",
     "../../src/indexing/types.ts",
     "../../src/recommendation/tagRanker.ts",
+    "../../src/recommendation/hybridRanker.ts",
     "../../src/recommendation/collectionPathRules.ts",
     "../../src/recommendation/types.ts",
     "../../src/providers/schema.ts",

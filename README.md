@@ -5,7 +5,7 @@ organizing bibliographic items. It recommends existing collections and manual
 tags, lets the user review every proposed change, and can repair metadata from
 a DOI without replacing the existing Zotero item.
 
-The current `0.1.4` build is a Phase 0/1 core prototype. It deliberately does
+The current `0.2.0` build is a Phase 0/1 core prototype. It deliberately does
 not monitor imports automatically, create tags or collections, replace PDFs,
 merge duplicates, or upload a full library to an external service.
 
@@ -24,6 +24,8 @@ merge duplicates, or upload a full library to an external service.
 - official `Zotero.ItemPaneManager.registerSection()` item-pane integration;
 - local library scan for top-level bibliographic items;
 - lightweight English/Chinese tokenization and BM25-based similarity;
+- optional local multilingual semantic retrieval with a cached quantized
+  `multilingual-e5-small` model and hybrid rank fusion;
 - recommendations constrained to existing collections and tags;
 - explicit review, apply, and session-level undo;
 - Crossref DOI metadata lookup and field-level comparison;
@@ -47,7 +49,7 @@ development profile and test library, and set the local Zotero executable and
 profile paths. See [Development guide](docs/DEVELOPMENT.md).
 
 The built XPI is written to
-`.scaffold/build/zotero-classification-assistant-0.1.4.xpi`. `npm run build`
+`.scaffold/build/zotero-classification-assistant-0.2.0.xpi`. `npm run build`
 also parses and validates the packaged manifest and XPI root layout.
 
 For optional DeepSeek reranking, use `https://api.deepseek.com` with
@@ -60,6 +62,9 @@ retrieval remains the default and runs before any remote request.
 - The plugin never writes directly to `zotero.sqlite`.
 - Every write requires explicit confirmation.
 - Local-only classification is the default.
+- Enabling multilingual retrieval downloads the model once from Hugging Face;
+  titles, abstracts, and cached embeddings remain inside the active Zotero
+  profile and are not sent to the model host.
 - Remote reranking receives only the selected paper metadata and a small set of
   locally generated candidates. It cannot introduce new collection keys or tag
   strings.
@@ -70,7 +75,8 @@ retrieval remains the default and runs before any remote request.
 - The UI still requires real-Zotero testing with a disposable profile.
 - Publisher webpage translation is not yet connected; metadata repair currently
   accepts DOI strings and DOI URLs through Crossref.
-- The local index is rebuilt in memory and is not yet persisted incrementally.
+- The BM25 index is rebuilt in memory. The experimental semantic index is
+  persisted per Zotero profile and updated incrementally.
 - API keys are isolated behind a secret-store interface but currently use a
   Zotero preference. This is documented in the settings UI and should be
   revisited before a public release.

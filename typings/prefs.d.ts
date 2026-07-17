@@ -11,6 +11,7 @@ declare namespace _ZoteroTypes {
       "maxCollectionRecommendations": number;
       "maxTagRecommendations": number;
       "includeAbstracts": boolean;
+      "semanticEnabled": boolean;
       "includeAutomaticTags": boolean;
       "excludedCollectionPaths": string;
       "showExplanations": boolean;

@@ -5,6 +5,9 @@ import type { IndexedItem, ScoredItem } from "../indexing/types.js";
 import { normalizeText } from "../metadata/metadataComparator.js";
 import { rankTags } from "./tagRanker.js";
 import { removeParentChildPathDuplicates } from "./collectionPathRules.js";
+import { fuseSimilarityRanks } from "./hybridRanker.js";
+import { semanticIndexService } from "../semantic/semanticIndex.js";
+import type { SemanticProgress } from "../semantic/semanticModel.js";
 import type {
   ClassificationRecommendation,
   CollectionRecommendation,
@@ -17,8 +20,11 @@ export interface RecommendationOptions {
   maxTags: number;
   includeAutomaticTags: boolean;
   includeAbstracts: boolean;
+  semanticEnabled: boolean;
   excludedCollectionPaths: string[];
 }
+
+export type RecommendationProgress = (progress: SemanticProgress) => void;
 
 function overlap(left: string[], right: string[]): number {
   const a = new Set(left.map(normalizeText).filter(Boolean));
@@ -153,6 +159,7 @@ function rankCollections(
 export async function recommendForItem(
   item: Zotero.Item,
   options: RecommendationOptions,
+  onProgress?: RecommendationProgress,
 ): Promise<ClassificationRecommendation> {
   const query = indexZoteroItem(item);
   const corpus = (await scanLibrary(item.libraryID)).filter(
@@ -164,7 +171,34 @@ export async function recommendForItem(
       candidate.tokens = tokenize(candidate.title);
     });
   }
-  const similarItems = scoreItems(query, corpus).slice(0, 30);
+  const lexicalItems = scoreItems(query, corpus);
+  let similarItems = lexicalItems.slice(0, 30);
+  let semanticStatus: ClassificationRecommendation["semanticStatus"] =
+    "disabled";
+  let semanticWarning: string | undefined;
+  if (options.semanticEnabled) {
+    try {
+      const semanticItems = await semanticIndexService.rank(
+        query,
+        corpus,
+        options.includeAbstracts,
+        50,
+        onProgress,
+      );
+      similarItems = fuseSimilarityRanks(
+        lexicalItems.slice(0, 50),
+        semanticItems,
+        50,
+      ).slice(0, 30);
+      semanticStatus = "used";
+    } catch (error) {
+      semanticStatus = "fallback";
+      semanticWarning = error instanceof Error ? error.message : String(error);
+      Zotero.debug(
+        `[ZCA Semantic] unavailable; falling back to BM25: ${semanticWarning}`,
+      );
+    }
+  }
   const collections = rankCollections(
     query,
     similarItems,
@@ -182,6 +216,8 @@ export async function recommendForItem(
     tags,
     similarItems: evidence(similarItems, 5),
     indexedItemCount: corpus.length + 1,
+    semanticStatus,
+    semanticWarning,
   };
 }
 

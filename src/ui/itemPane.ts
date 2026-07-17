@@ -88,6 +88,21 @@ function renderRecommendation(
   container: HTMLElement,
   recommendation: ClassificationRecommendation,
 ): void {
+  const retrieval = doc.createElement("p");
+  retrieval.className = "zca-status";
+  retrieval.textContent =
+    recommendation.semanticStatus === "used"
+      ? text(
+          "Retrieval: local multilingual semantic + BM25",
+          "检索方式：本地多语言语义 + BM25",
+        )
+      : recommendation.semanticStatus === "fallback"
+        ? text(
+            `Retrieval: BM25 fallback (${recommendation.semanticWarning || "semantic model unavailable"})`,
+            `检索方式：BM25 回退（${recommendation.semanticWarning || "语义模型不可用"}）`,
+          )
+        : text("Retrieval: local BM25", "检索方式：本地 BM25");
+  container.appendChild(retrieval);
   container.appendChild(heading(doc, text("Collections", "集合建议")));
   if (!recommendation.collections.length) {
     const empty = doc.createElement("p");
@@ -255,7 +270,26 @@ function renderPane(body: HTMLDivElement, item: Zotero.Item): void {
       state.error = undefined;
       state.success = undefined;
       renderPane(body, item);
-      void recommendForItem(item, recommendationSettings())
+      void recommendForItem(item, recommendationSettings(), (progress) => {
+        if (progress.phase === "index") {
+          state.loading = text(
+            `Building semantic index ${progress.completed || 0}/${progress.itemCount || 0}…`,
+            `正在建立语义索引 ${progress.completed || 0}/${progress.itemCount || 0}……`,
+          );
+        } else if (progress.total && progress.loaded) {
+          const percent = Math.round((progress.loaded / progress.total) * 100);
+          state.loading = text(
+            `Downloading local semantic model ${percent}%…`,
+            `正在下载本地语义模型 ${percent}%……`,
+          );
+        } else {
+          state.loading = text(
+            "Loading local semantic model…",
+            "正在加载本地语义模型……",
+          );
+        }
+        renderPane(body, item);
+      })
         .then((recommendation) => {
           state.recommendation = recommendation;
           state.success = text(

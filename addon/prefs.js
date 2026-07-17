@@ -2,6 +2,7 @@ pref("enableLocalClassification", true);
 pref("maxCollectionRecommendations", 3);
 pref("maxTagRecommendations", 6);
 pref("includeAbstracts", true);
+pref("semanticEnabled", false);
 pref("includeAutomaticTags", false);
 pref("excludedCollectionPaths", "Inbox\nTo Read\nRead\nArchive\nTemporary");
 pref("showExplanations", true);

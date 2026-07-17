@@ -136,6 +136,22 @@
 
   <groupbox>
     <label><html:h3 data-l10n-id="pref-index-title"></html:h3></label>
+    <checkbox
+      preference="semanticEnabled"
+      data-l10n-id="pref-semantic-enabled"
+    />
+    <hbox>
+      <button id="zca-test-semantic" data-l10n-id="pref-test-semantic"></button>
+      <button
+        id="zca-build-semantic-index"
+        data-l10n-id="pref-build-semantic-index"
+      ></button>
+      <button
+        id="zca-clear-semantic"
+        data-l10n-id="pref-clear-semantic"
+      ></button>
+    </hbox>
+    <html:p id="zca-semantic-status" aria-live="polite"></html:p>
     <button id="zca-rebuild-index" data-l10n-id="pref-rebuild-index"></button>
     <html:p data-l10n-id="pref-index-note"></html:p>
   </groupbox>

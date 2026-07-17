@@ -6,7 +6,8 @@ The first implementation keeps a strict local-first, human-confirmed workflow:
 
 ```text
 selected Zotero item
-  -> local library scan and lightweight index
+  -> local library scan
+  -> BM25 plus optional local multilingual vector retrieval
   -> existing collection/tag candidates
   -> optional allow-listed remote reranking
   -> item-pane review
@@ -29,6 +30,9 @@ official Zotero 7+ `ItemPaneManager` and `PreferencePanes` APIs.
 
 - `src/indexing`: pure tokenizer and BM25 code plus the Zotero-backed library
   scanner. Binary attachments are never indexed.
+- `src/semantic`: on-demand multilingual embedding runtime, profile-local model
+  cache, and persistent per-library vector indexes. It never writes to Zotero's
+  database.
 - `src/recommendation`: transparent item scoring and constrained collection/tag
   ranking. Collection identity uses IDs and keys, with full paths for display.
 - `src/metadata`: identifier normalization, deterministic comparison, repair
@@ -42,13 +46,21 @@ official Zotero 7+ `ItemPaneManager` and `PreferencePanes` APIs.
   log.
 - `src/ui`: item-pane rendering and field-level metadata review.
 
-## Similarity baseline
+## Hybrid similarity
 
 Metadata text is Unicode NFKC-normalized. Latin alphanumeric tokens have a small
 English stop-word list; Chinese runs produce unigrams and bigrams. DOIs are
-removed from semantic text. BM25 supplies the text component, combined with
+removed from indexed text. BM25 supplies the lexical baseline, combined with
 manual-tag, publication, creator, and exact-title evidence using centralized
 weights in `recommendationService.ts`.
+
+When experimental semantic retrieval is enabled, the plugin downloads the
+quantized `Xenova/multilingual-e5-small` model and runs it locally through the
+packaged Transformers.js/ONNX WebAssembly runtime. The model is not embedded in
+the XPI. Model files and 384-dimensional title/abstract embeddings are cached
+under the active Zotero profile. Lexical and semantic top-50 lists are combined
+with weighted reciprocal-rank fusion (45% lexical, 55% semantic). A failure to
+load or run the model is logged and falls back to the BM25 list.
 
 Collection ranking aggregates the best locally similar papers. Tag ranking uses
 similarity-weighted frequency and, by default, considers manual tags only.
@@ -76,8 +88,10 @@ untrusted prompt content.
 
 ## Persistence
 
-The prototype rebuilds the index in memory. Zotero remains the source of truth.
-No plugin code writes to `zotero.sqlite`. API-key access is behind `SecretStore`;
-the current implementation uses a local Zotero preference and exposes a clear
-control. A stronger OS-backed storage mechanism should be evaluated before a
-public release.
+The BM25 index is rebuilt in memory. The semantic model cache and vector index
+live in the plugin's directory under the active Zotero profile and can be
+deleted from preferences. Zotero remains the source of truth. No plugin code
+writes to `zotero.sqlite`. API-key access is behind `SecretStore`; the current
+implementation uses a local Zotero preference and exposes a clear control. A
+stronger OS-backed storage mechanism should be evaluated before a public
+release.

@@ -1,7 +1,7 @@
 {
   "name": "zotero-classification-assistant",
   "type": "module",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "Local-first collection, tag, and metadata assistance for Zotero",
   "config": {
     "addonName": "Zotero Classification Assistant",
@@ -34,6 +34,7 @@
     "update-deps": "npm update --save"
   },
   "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
     "zotero-plugin-toolkit": "^5.1.0-beta.13"
   },
   "devDependencies": {
