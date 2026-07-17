@@ -90,15 +90,15 @@ export async function reviewMetadataProposal(
   });
 
   dialog
-    .addButton("Select all changed fields", "select-all", {
+    .addButton("Select recommended fields", "select-all", {
       noClose: true,
       callback: () => {
         for (const comparison of changed) {
-          dialogData[`field_${comparison.field}`] = true;
+          dialogData[`field_${comparison.field}`] = comparison.defaultSelected;
           const checkbox = dialog.window.document.querySelector(
             `#metadata-${comparison.field}`,
           ) as HTMLInputElement | null;
-          if (checkbox) checkbox.checked = true;
+          if (checkbox) checkbox.checked = comparison.defaultSelected;
         }
       },
     })

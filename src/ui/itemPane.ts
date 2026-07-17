@@ -390,11 +390,11 @@ export function registerClassificationItemPane(): void {
     pluginID: addon.data.config.addonID,
     header: {
       l10nID: `${addon.data.config.addonRef}-item-pane-header`,
-      icon: "chrome://zotero/skin/16/universal/book.svg",
+      icon: `chrome://${addon.data.config.addonRef}/content/icons/favicon@0.5x.png`,
     },
     sidenav: {
       l10nID: `${addon.data.config.addonRef}-item-pane-sidenav`,
-      icon: "chrome://zotero/skin/20/universal/book.svg",
+      icon: `chrome://${addon.data.config.addonRef}/content/icons/favicon.png`,
     },
     onItemChange: ({ item, setEnabled }) => {
       setEnabled(isEligibleBibliographicItem(item));

@@ -5,7 +5,7 @@ organizing bibliographic items. It recommends existing collections and manual
 tags, lets the user review every proposed change, and can repair metadata from
 a DOI without replacing the existing Zotero item.
 
-The current `0.1.2` build is a Phase 0/1 core prototype. It deliberately does
+The current `0.1.3` build is a Phase 0/1 core prototype. It deliberately does
 not monitor imports automatically, create tags or collections, replace PDFs,
 merge duplicates, or upload a full library to an external service.
 
@@ -47,8 +47,12 @@ development profile and test library, and set the local Zotero executable and
 profile paths. See [Development guide](docs/DEVELOPMENT.md).
 
 The built XPI is written to
-`.scaffold/build/zotero-classification-assistant-0.1.2.xpi`. `npm run build`
+`.scaffold/build/zotero-classification-assistant-0.1.3.xpi`. `npm run build`
 also parses and validates the packaged manifest and XPI root layout.
+
+For optional DeepSeek reranking, use `https://api.deepseek.com` with
+`deepseek-v4-flash` for the normal classification workflow. Local candidate
+retrieval remains the default and runs before any remote request.
 
 ## Safety and privacy
 

@@ -12,6 +12,7 @@
   "include": [
     "*.test.ts",
     "../../src/metadata/identifierNormalizer.ts",
+    "../../src/metadata/sources/crossrefMapping.ts",
     "../../src/metadata/metadataComparator.ts",
     "../../src/metadata/types.ts",
     "../../src/indexing/tokenizer.ts",

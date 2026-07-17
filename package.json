@@ -1,7 +1,7 @@
 {
   "name": "zotero-classification-assistant",
   "type": "module",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Local-first collection, tag, and metadata assistance for Zotero",
   "config": {
     "addonName": "Zotero Classification Assistant",

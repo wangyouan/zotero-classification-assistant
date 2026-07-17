@@ -4,6 +4,7 @@ import type {
   MetadataInput,
   MetadataSource,
 } from "../types.js";
+import { isSSRNRecord, mapCrossrefItemType } from "./crossrefMapping.js";
 
 interface CrossrefAuthor {
   given?: string;
@@ -27,19 +28,6 @@ interface CrossrefMessage {
   URL?: string;
   ISSN?: string[];
   language?: string;
-}
-
-function mapItemType(type?: string): string | undefined {
-  const mapping: Record<string, string> = {
-    "journal-article": "journalArticle",
-    "book-chapter": "bookSection",
-    "proceedings-article": "conferencePaper",
-    book: "book",
-    report: "report",
-    dissertation: "thesis",
-    posted: "preprint",
-  };
-  return type ? mapping[type] : undefined;
 }
 
 function publishedDate(message: CrossrefMessage): string | undefined {
@@ -99,26 +87,31 @@ export class CrossrefSource implements MetadataSource {
           creatorType: "author",
         }),
       );
+      const doi = message.DOI?.toLowerCase() || input.value;
+      const publicationTitle = message["container-title"]?.[0]?.trim();
+      const isSSRN = isSSRNRecord(doi, publicationTitle);
       return [
         {
           sourceId: this.id,
           sourceLabel: "Crossref",
           sourceUrl,
           retrievedAt: new Date().toISOString(),
-          itemType: mapItemType(message.type),
+          itemType: mapCrossrefItemType(message.type, doi, publicationTitle),
           title: message.title?.[0]?.trim(),
           creators,
           abstractNote: stripMarkup(message.abstract),
-          publicationTitle: message["container-title"]?.[0]?.trim(),
+          publicationTitle: isSSRN ? undefined : publicationTitle,
           date: publishedDate(message),
           volume: message.volume,
           issue: message.issue,
           pages: message.page || message["article-number"],
-          DOI: message.DOI?.toLowerCase() || input.value,
+          DOI: doi,
           url: message.URL,
-          ISSN: message.ISSN,
+          ISSN: isSSRN ? undefined : message.ISSN,
           language: message.language,
-          warnings: [],
+          warnings: isSSRN
+            ? ["SSRN DOI detected; preserving the item as a preprint."]
+            : [],
         },
       ];
     } finally {
