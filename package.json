@@ -1,7 +1,7 @@
 {
   "name": "zotero-classification-assistant",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Local-first collection, tag, and metadata assistance for Zotero",
   "config": {
     "addonName": "Zotero Classification Assistant",
@@ -22,7 +22,9 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "start": "zotero-plugin serve",
-    "build": "zotero-plugin build && tsc --noEmit",
+    "build": "zotero-plugin build && npm run typecheck && npm run verify:xpi",
+    "typecheck": "tsc --noEmit",
+    "verify:xpi": "node scripts/verify-xpi.mjs",
     "lint:check": "prettier --check . && eslint .",
     "lint:fix": "prettier --write . && eslint . --fix",
     "release": "zotero-plugin release",
@@ -39,6 +41,7 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "^24.10.0",
     "@zotero-plugin/eslint-config": "^0.6.7",
+    "adm-zip": "^0.5.16",
     "chai": "^6.2.1",
     "eslint": "^9.39.2",
     "mocha": "^11.7.5",

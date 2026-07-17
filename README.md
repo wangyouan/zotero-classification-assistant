@@ -5,9 +5,18 @@ organizing bibliographic items. It recommends existing collections and manual
 tags, lets the user review every proposed change, and can repair metadata from
 a DOI without replacing the existing Zotero item.
 
-The current `0.1.0` build is a Phase 0/1 core prototype. It deliberately does
+The current `0.1.1` build is a Phase 0/1 core prototype. It deliberately does
 not monitor imports automatically, create tags or collections, replace PDFs,
 merge duplicates, or upload a full library to an external service.
+
+## Zotero compatibility
+
+- Confirmed test-machine application: Zotero 9.0.6 (64-bit, stable) on Windows.
+- Declared compatibility: Zotero 9.0 through 9.0.x.
+- The development XPI deliberately has no `update_url` until a real update
+  manifest is published.
+- Zotero 7 and 8 are not declared compatible because this prototype has not
+  been tested on those versions.
 
 ## Implemented in the prototype
 
@@ -36,7 +45,9 @@ To run Zotero with hot reload, copy `.env.example` to `.env`, use a separate
 development profile and test library, and set the local Zotero executable and
 profile paths. See [Development guide](docs/DEVELOPMENT.md).
 
-The built XPI is written to `.scaffold/build/zotero-classification-assistant.xpi`.
+The built XPI is written to
+`.scaffold/build/zotero-classification-assistant-0.1.1.xpi`. `npm run build`
+also parses and validates the packaged manifest and XPI root layout.
 
 ## Safety and privacy
 

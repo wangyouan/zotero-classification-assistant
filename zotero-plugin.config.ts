@@ -7,9 +7,7 @@ export default defineConfig({
   name: pkg.config.addonName,
   id: pkg.config.addonID,
   namespace: pkg.config.addonRef,
-  updateURL: `https://github.com/{{owner}}/{{repo}}/releases/download/release/${
-    pkg.version.includes("-") ? "update-beta.json" : "update.json"
-  }`,
+  xpiName: `${pkg.name}-${pkg.version}`,
   xpiDownloadLink:
     "https://github.com/{{owner}}/{{repo}}/releases/download/v{{version}}/{{xpiName}}.xpi",
 
@@ -25,6 +23,11 @@ export default defineConfig({
     },
     prefs: {
       prefix: pkg.config.prefsPrefix,
+    },
+    makeManifest: {
+      // Keep addon/manifest.json authoritative so development builds do not
+      // acquire an unpublished update_url from the scaffold defaults.
+      enable: false,
     },
     esbuildOptions: [
       {
