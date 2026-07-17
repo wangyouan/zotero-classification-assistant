@@ -7,8 +7,24 @@
 declare namespace _ZoteroTypes {
   interface Prefs {
     PluginPrefsMap: {
-      "enable": boolean;
-      "input": string;
+      "enableLocalClassification": boolean;
+      "maxCollectionRecommendations": number;
+      "maxTagRecommendations": number;
+      "includeAbstracts": boolean;
+      "includeAutomaticTags": boolean;
+      "excludedCollectionPaths": string;
+      "showExplanations": boolean;
+      "confirmBeforeWrite": boolean;
+      "remoteEnabled": boolean;
+      "providerName": string;
+      "baseURL": string;
+      "apiKey": string;
+      "model": string;
+      "timeoutMs": number;
+      "temperature": string;
+      "maxOutputTokens": number;
+      "sendAbstract": boolean;
+      "sendSimilarAbstracts": boolean;
     };
   }
 }

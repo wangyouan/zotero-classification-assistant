@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "../../.scaffold/unit",
+    "rootDir": "../..",
+    "types": ["node"],
+    "skipLibCheck": true,
+    "strict": true
+  },
+  "include": [
+    "*.test.ts",
+    "../../src/metadata/identifierNormalizer.ts",
+    "../../src/metadata/metadataComparator.ts",
+    "../../src/metadata/types.ts",
+    "../../src/indexing/tokenizer.ts",
+    "../../src/indexing/bm25.ts",
+    "../../src/indexing/types.ts",
+    "../../src/recommendation/tagRanker.ts",
+    "../../src/recommendation/collectionPathRules.ts",
+    "../../src/recommendation/types.ts",
+    "../../src/providers/schema.ts",
+    "../../src/providers/types.ts",
+    "../../src/storage/operationLog.ts"
+  ]
+}

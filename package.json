@@ -1,24 +1,24 @@
 {
-  "name": "zotero-plugin-template",
+  "name": "zotero-classification-assistant",
   "type": "module",
-  "version": "3.1.0",
-  "description": "Zotero Plugin Template",
+  "version": "0.1.0",
+  "description": "Local-first collection, tag, and metadata assistance for Zotero",
   "config": {
-    "addonName": "Zotero Plugin Template",
-    "addonID": "addontemplate@euclpts.com",
-    "addonRef": "addontemplate",
-    "addonInstance": "AddonTemplate",
-    "prefsPrefix": "extensions.zotero.addontemplate"
+    "addonName": "Zotero Classification Assistant",
+    "addonID": "zotero-classification-assistant@wangyouan.com",
+    "addonRef": "zoteroClassificationAssistant",
+    "addonInstance": "ZoteroClassificationAssistant",
+    "prefsPrefix": "extensions.zotero.zoteroClassificationAssistant"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/windingwind/zotero-plugin-template.git"
+    "url": "git+https://github.com/wangyouan/zotero-classification-assistant.git"
   },
-  "author": "windingwind",
+  "author": "Youan Wang",
   "bugs": {
-    "url": "https://github.com/windingwind/zotero-plugin-template/issues"
+    "url": "https://github.com/wangyouan/zotero-classification-assistant/issues"
   },
-  "homepage": "https://github.com/windingwind/zotero-plugin-template#readme",
+  "homepage": "https://github.com/wangyouan/zotero-classification-assistant#readme",
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "start": "zotero-plugin serve",
@@ -26,7 +26,9 @@
     "lint:check": "prettier --check . && eslint .",
     "lint:fix": "prettier --write . && eslint . --fix",
     "release": "zotero-plugin release",
-    "test": "zotero-plugin test",
+    "test": "npm run test:unit",
+    "test:unit": "tsc -p test/unit/tsconfig.json && node --test .scaffold/unit/test/unit/*.test.js",
+    "test:zotero": "zotero-plugin test",
     "update-deps": "npm update --save"
   },
   "dependencies": {

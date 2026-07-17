@@ -9,3 +9,7 @@ item-section-example2-sidenav-tooltip =
 item-section-example2-button-tooltip =
     .tooltiptext = 移除此面板
 item-info-row-example-label = 示例行
+item-pane-header =
+    .label = 分类助手
+item-pane-sidenav =
+    .tooltiptext = 分类助手

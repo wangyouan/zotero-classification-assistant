@@ -1,3 +1,54 @@
-.makeItRed {
-  background-color: tomato;
+.zca-pane {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  min-width: 260px;
+}
+
+.zca-status {
+  margin: 0;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: color-mix(in srgb, currentColor 7%, transparent);
+  white-space: normal;
+}
+
+.zca-error {
+  color: #b42318;
+}
+
+.zca-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.zca-button {
+  padding: 4px 8px;
+}
+
+.zca-heading {
+  margin: 8px 0 0;
+  font-size: 1em;
+}
+
+.zca-candidate {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 6px;
+  align-items: start;
+  padding: 6px 0;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.zca-candidate span {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.zca-evidence {
+  margin: 0;
+  padding-inline-start: 24px;
 }
