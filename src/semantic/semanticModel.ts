@@ -215,28 +215,40 @@ class SemanticModelService {
     transformers.env.customCache = modelCache;
     const vendorURL = `chrome://${addon.data.config.addonRef}/content/vendor/`;
     const wasmURL = `${vendorURL}ort-wasm-simd-threaded.wasm`;
+    const wasmBinary = await readPackagedBinary(wasmURL);
+    const wasmObjectURL = URL.createObjectURL(
+      new Blob([wasmBinary], { type: "application/wasm" }),
+    );
     transformers.env.backends.onnx.wasm.wasmPaths = {
       mjs: `${vendorURL}ort-wasm-simd-threaded.mjs`,
-      wasm: wasmURL,
+      wasm: wasmObjectURL,
     };
     transformers.env.backends.onnx.wasm.numThreads = 1;
     transformers.env.backends.onnx.wasm.proxy = false;
-    transformers.env.backends.onnx.wasm.wasmBinary =
-      await readPackagedBinary(wasmURL);
+    transformers.env.backends.onnx.wasm.wasmBinary = wasmBinary;
     Zotero.debug(
-      `[ZCA Semantic] loaded packaged WASM (${transformers.env.backends.onnx.wasm.wasmBinary.byteLength} bytes)`,
+      `[ZCA Semantic] loaded packaged WASM (${wasmBinary.byteLength} bytes; blob fallback ready)`,
     );
-    const pipeline = await transformers.pipeline(
-      "feature-extraction",
-      SEMANTIC_MODEL_ID,
-      {
-        dtype: SEMANTIC_MODEL_DTYPE,
-        device: "wasm",
-        progress_callback: (value) => progressValue(value, onProgress),
-      },
-    );
-    Zotero.debug(`[ZCA Semantic] ${SEMANTIC_MODEL_ID} ready`);
-    return pipeline;
+    try {
+      const pipeline = await transformers.pipeline(
+        "feature-extraction",
+        SEMANTIC_MODEL_ID,
+        {
+          dtype: SEMANTIC_MODEL_DTYPE,
+          device: "wasm",
+          progress_callback: (value) => progressValue(value, onProgress),
+        },
+      );
+      Zotero.debug(`[ZCA Semantic] ${SEMANTIC_MODEL_ID} ready`);
+      return pipeline;
+    } catch (error) {
+      Zotero.logError(
+        error instanceof Error ? error : new Error(String(error)),
+      );
+      throw error;
+    } finally {
+      URL.revokeObjectURL(wasmObjectURL);
+    }
   }
 }
 

@@ -116,8 +116,11 @@ const addonScript = zip
   .getData()
   .toString("utf8");
 assert(
-  addonScript.includes("wasmBinary") && addonScript.includes("NetUtil.sys.mjs"),
-  "add-on does not preload packaged WASM through Gecko's resource channel",
+  addonScript.includes("wasmBinary") &&
+    addonScript.includes("NetUtil.sys.mjs") &&
+    addonScript.includes("createObjectURL") &&
+    addonScript.includes("revokeObjectURL"),
+  "add-on does not preload packaged WASM with a blob URL fallback",
 );
 assert(
   !names.some((name) => /(^|\/)model[^/]*\.onnx$/i.test(name)),
