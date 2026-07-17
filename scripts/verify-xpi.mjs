@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { Buffer } from "node:buffer";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -102,6 +103,21 @@ assert(
     "if (isNode) isPthread = (await import('worker_threads')).workerData === 'em-pthread';",
   ),
   "ONNX WASM module still contains Zotero-incompatible top-level await",
+);
+const wasmBytes = zip
+  .getEntry("content/vendor/ort-wasm-simd-threaded.wasm")
+  .getData();
+assert(
+  wasmBytes.subarray(0, 4).equals(Buffer.from([0x00, 0x61, 0x73, 0x6d])),
+  "packaged ONNX runtime does not have a valid WebAssembly header",
+);
+const addonScript = zip
+  .getEntry("content/scripts/zoteroClassificationAssistant.js")
+  .getData()
+  .toString("utf8");
+assert(
+  addonScript.includes("wasmBinary") && addonScript.includes("NetUtil.sys.mjs"),
+  "add-on does not preload packaged WASM through Gecko's resource channel",
 );
 assert(
   !names.some((name) => /(^|\/)model[^/]*\.onnx$/i.test(name)),

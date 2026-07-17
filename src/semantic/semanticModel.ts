@@ -51,6 +51,7 @@ interface TransformersModule {
               };
           numThreads: number;
           proxy: boolean;
+          wasmBinary?: Uint8Array;
         };
       };
     };
@@ -69,6 +70,54 @@ interface TransformersModule {
 interface ZoteroModelCacheLike {
   match(request: unknown): Promise<Response | undefined>;
   put(request: unknown, response: Response): Promise<void>;
+}
+
+interface NetUtilModule {
+  NetUtil: {
+    newChannel(options: {
+      uri: string;
+      loadUsingSystemPrincipal: boolean;
+      securityFlags: number;
+      contentPolicyType: number;
+    }): nsIChannel;
+    asyncFetch(
+      source: nsIChannel,
+      callback: (inputStream: nsIInputStream, status: number) => void,
+    ): void;
+  };
+}
+
+async function readPackagedBinary(url: string): Promise<Uint8Array> {
+  const { NetUtil } = ChromeUtils.importESModule(
+    "resource://gre/modules/NetUtil.sys.mjs",
+  ) as NetUtilModule;
+  const channel = NetUtil.newChannel({
+    uri: url,
+    loadUsingSystemPrincipal: true,
+    securityFlags: Ci.nsILoadInfo
+      .SEC_ALLOW_CROSS_ORIGIN_SEC_CONTEXT_IS_NULL as number,
+    contentPolicyType: Ci.nsIContentPolicy.TYPE_OTHER,
+  });
+  return new Promise((resolve, reject) => {
+    NetUtil.asyncFetch(channel, (inputStream, status) => {
+      if (!Components.isSuccessCode(status)) {
+        reject(new Error(`Failed to read packaged resource ${url}: ${status}`));
+        return;
+      }
+      try {
+        const length = inputStream.available();
+        const binary = Cc["@mozilla.org/binaryinputstream;1"].createInstance(
+          Ci.nsIBinaryInputStream,
+        );
+        binary.setInputStream(inputStream);
+        const bytes = Uint8Array.from(binary.readByteArray(length));
+        binary.close();
+        resolve(bytes);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  });
 }
 
 function progressValue(
@@ -165,12 +214,18 @@ class SemanticModelService {
     transformers.env.useCustomCache = true;
     transformers.env.customCache = modelCache;
     const vendorURL = `chrome://${addon.data.config.addonRef}/content/vendor/`;
+    const wasmURL = `${vendorURL}ort-wasm-simd-threaded.wasm`;
     transformers.env.backends.onnx.wasm.wasmPaths = {
       mjs: `${vendorURL}ort-wasm-simd-threaded.mjs`,
-      wasm: `${vendorURL}ort-wasm-simd-threaded.wasm`,
+      wasm: wasmURL,
     };
     transformers.env.backends.onnx.wasm.numThreads = 1;
     transformers.env.backends.onnx.wasm.proxy = false;
+    transformers.env.backends.onnx.wasm.wasmBinary =
+      await readPackagedBinary(wasmURL);
+    Zotero.debug(
+      `[ZCA Semantic] loaded packaged WASM (${transformers.env.backends.onnx.wasm.wasmBinary.byteLength} bytes)`,
+    );
     const pipeline = await transformers.pipeline(
       "feature-extraction",
       SEMANTIC_MODEL_ID,
