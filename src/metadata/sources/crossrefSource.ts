@@ -4,7 +4,7 @@ import type {
   MetadataInput,
   MetadataSource,
 } from "../types.js";
-import { isSSRNRecord, mapCrossrefItemType } from "./crossrefMapping.js";
+import { mapCrossrefItemType, workingPaperSeries } from "./crossrefMapping.js";
 
 interface CrossrefAuthor {
   given?: string;
@@ -28,6 +28,7 @@ interface CrossrefMessage {
   URL?: string;
   ISSN?: string[];
   language?: string;
+  publisher?: string;
 }
 
 function publishedDate(message: CrossrefMessage): string | undefined {
@@ -89,28 +90,39 @@ export class CrossrefSource implements MetadataSource {
       );
       const doi = message.DOI?.toLowerCase() || input.value;
       const publicationTitle = message["container-title"]?.[0]?.trim();
-      const isSSRN = isSSRNRecord(doi, publicationTitle);
+      const series = workingPaperSeries(
+        doi,
+        publicationTitle,
+        message.publisher,
+      );
       return [
         {
           sourceId: this.id,
           sourceLabel: "Crossref",
           sourceUrl,
           retrievedAt: new Date().toISOString(),
-          itemType: mapCrossrefItemType(message.type, doi, publicationTitle),
+          itemType: mapCrossrefItemType(
+            message.type,
+            doi,
+            publicationTitle,
+            message.publisher,
+          ),
           title: message.title?.[0]?.trim(),
           creators,
           abstractNote: stripMarkup(message.abstract),
-          publicationTitle: isSSRN ? undefined : publicationTitle,
+          publicationTitle: series ? undefined : publicationTitle,
           date: publishedDate(message),
           volume: message.volume,
           issue: message.issue,
           pages: message.page || message["article-number"],
           DOI: doi,
           url: message.URL,
-          ISSN: isSSRN ? undefined : message.ISSN,
+          ISSN: series ? undefined : message.ISSN,
           language: message.language,
-          warnings: isSSRN
-            ? ["SSRN DOI detected; preserving the item as a preprint."]
+          warnings: series
+            ? [
+                `${series} working paper detected; preserving the item as a preprint.`,
+              ]
             : [],
         },
       ];

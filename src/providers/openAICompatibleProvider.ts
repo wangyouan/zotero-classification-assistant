@@ -44,37 +44,48 @@ export class OpenAICompatibleProvider implements LLMProvider {
   ): Promise<ChatResponse> {
     const validation = await this.validateConfig();
     if (!validation.valid) throw new Error(validation.errors.join(" "));
+    const requestEndpoint = endpoint(this.config.baseURL);
+    const started = Date.now();
+    Zotero.debug(
+      `[ZCA Remote API] POST ${requestEndpoint} model=${this.config.model}`,
+    );
     let cancel: (() => void) | undefined;
     const abortListener = () => cancel?.();
     signal?.addEventListener("abort", abortListener, { once: true });
     try {
-      const xhr = await Zotero.HTTP.request(
-        "POST",
-        endpoint(this.config.baseURL),
-        {
-          body: JSON.stringify({
-            model: this.config.model,
-            messages,
-            temperature: this.config.temperature,
-            max_tokens: this.config.maxOutputTokens,
-            response_format: { type: "json_object" },
-          }),
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${this.config.apiKey}`,
-          },
-          responseType: "json",
-          timeout: this.config.timeoutMs,
-          errorDelayMax: 0,
-          logBodyLength: 0,
-          cancellerReceiver: (value: () => void) => {
-            cancel = value;
-          },
+      const xhr = await Zotero.HTTP.request("POST", requestEndpoint, {
+        body: JSON.stringify({
+          model: this.config.model,
+          messages,
+          temperature: this.config.temperature,
+          max_tokens: this.config.maxOutputTokens,
+          response_format: { type: "json_object" },
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.config.apiKey}`,
         },
+        responseType: "json",
+        timeout: this.config.timeoutMs,
+        errorDelayMax: 0,
+        logBodyLength: 0,
+        cancellerReceiver: (value: () => void) => {
+          cancel = value;
+        },
+      });
+      Zotero.debug(
+        `[ZCA Remote API] completed status=${xhr.status} durationMs=${Date.now() - started}`,
       );
       return typeof xhr.response === "object"
         ? (xhr.response as ChatResponse)
         : (JSON.parse(xhr.responseText || "{}") as ChatResponse);
+    } catch (error) {
+      Zotero.debug(
+        `[ZCA Remote API] failed durationMs=${Date.now() - started} error=${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+      throw error;
     } finally {
       signal?.removeEventListener("abort", abortListener);
     }
