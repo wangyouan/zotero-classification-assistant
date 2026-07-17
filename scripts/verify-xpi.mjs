@@ -16,9 +16,14 @@ const pkg = JSON.parse(
 const sourceManifest = JSON.parse(
   readFileSync(path.join(projectRoot, "addon", "manifest.json"), "utf8"),
 );
+const updateManifest = JSON.parse(
+  readFileSync(path.join(projectRoot, "update.json"), "utf8"),
+);
 const expected = {
   id: pkg.config.addonID,
   version: pkg.version,
+  updateURL:
+    "https://raw.githubusercontent.com/wangyouan/zotero-classification-assistant/codex/phase-0-1-core-prototype/update.json",
   strictMinVersion: "9.0",
   strictMaxVersion: "9.0.*",
 };
@@ -42,6 +47,14 @@ assert(zip.test(), "ZIP integrity check failed");
 assert(
   sourceManifest.version === expected.version,
   "source manifest/package version mismatch",
+);
+assert(
+  sourceManifest.applications?.zotero?.update_url === expected.updateURL,
+  "source manifest has an unexpected update_url",
+);
+assert(
+  Array.isArray(updateManifest.addons?.[expected.id]?.updates),
+  "update.json does not contain a valid add-on updates array",
 );
 
 const entries = zip.getEntries();
@@ -83,8 +96,8 @@ assert(
   "unexpected strict_max_version",
 );
 assert(
-  !("update_url" in zotero),
-  "development XPI must not contain update_url",
+  zotero?.update_url === expected.updateURL,
+  "missing or unexpected update_url",
 );
 assert(
   !manifestText.includes("__"),

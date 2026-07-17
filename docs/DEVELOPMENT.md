@@ -12,7 +12,7 @@ Never test mutation behavior against a production Zotero library.
 
 ## Compatibility target
 
-Version 0.1.1 targets the confirmed test-machine installation, Zotero 9.0.6
+Version 0.1.2 targets the confirmed test-machine installation, Zotero 9.0.6
 (64-bit, stable) on Windows. Its manifest declares:
 
 ```json
@@ -23,8 +23,10 @@ Version 0.1.1 targets the confirmed test-machine installation, Zotero 9.0.6
 ```
 
 Zotero 7 and 8 are intentionally excluded until they are tested. Do not widen
-the upper bound to an unlimited wildcard. The development XPI omits
-`update_url`; add one only after its update manifest is actually published.
+the upper bound to an unlimited wildcard. Zotero 9.0.6 also requires
+`applications.zotero.update_url` during manifest validation. The development
+XPI points to the branch's real `update.json`; its updates array remains empty
+until a downloadable release asset is published.
 
 ## Install and verify
 
@@ -37,7 +39,7 @@ npm run build
 ```
 
 The packaged XPI is placed at
-`.scaffold/build/zotero-classification-assistant-0.1.1.xpi`. The build invokes
+`.scaffold/build/zotero-classification-assistant-0.1.2.xpi`. The build invokes
 `scripts/verify-xpi.mjs`, which checks ZIP integrity, root-level `manifest.json`
 and `bootstrap.js`, manifest values, unresolved placeholders, and prohibited
 source, test, secret, PDF, database, and local-path content. It prints the
@@ -79,7 +81,7 @@ After `npm run build`:
 2. Select a disposable profile whose data directory contains no production
    library and do not sign in to Zotero Sync.
 3. Open **Tools → Plugins**, choose **Install Add-on From File**, and select
-   `.scaffold/build/zotero-classification-assistant-0.1.1.xpi`.
+   `.scaffold/build/zotero-classification-assistant-0.1.2.xpi`.
 4. Restart Zotero, open a top-level bibliographic item, and expand
    **Classification Assistant** in the right pane.
 5. Confirm the preferences pane opens, then test disable/enable and uninstall.
@@ -93,10 +95,18 @@ preferences behavior, Crossref networking inside Zotero, and all write/undo
 flows require the separate development profile. These integration checks are a
 release blocker, not something to infer from compilation alone.
 
-For the 0.1.1 compatibility repair, the reported 0.1.0 installation log was:
+The reported 0.1.0 installation log was:
 
 ```text
 Reading manifest: applications.zotero.strict_max_version not provided
+Invalid XPI: Error: Extension is invalid
+```
+
+After adding `strict_max_version`, the reported 0.1.1 installation log exposed
+a second required field:
+
+```text
+Reading manifest: applications.zotero.update_url not provided
 Invalid XPI: Error: Extension is invalid
 ```
 
